@@ -10,7 +10,9 @@ import {
   createTheme,
   Typography,
   Box,
+  CircularProgress,
 } from '@mui/material';
+import { User } from 'firebase/auth';
 import { CadastroPage } from './pages/CadastroPage';
 import { RelatorioPage } from './pages/RelatorioPage';
 import { AuthPage } from './pages/AuthPage';
@@ -42,8 +44,9 @@ const ROUTES = {
 function App() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const loadExpenses = useCallback(async () => {
     if (!user) {
@@ -54,11 +57,14 @@ function App() {
 
     try {
       setIsLoading(true);
+      setError(null);
       const data = await expenseService.getAllExpenses();
       console.log('Despesas carregadas:', data);
       setExpenses(data);
     } catch (error) {
-      console.error('Erro ao carregar despesas:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to load expenses';
+      console.error('Error loading expenses:', error);
+      setError(errorMessage);
       setExpenses([]);
     } finally {
       setIsLoading(false);
@@ -85,40 +91,52 @@ function App() {
 
   const handleAddExpense = async (newExpense: NewExpense) => {
     try {
+      setError(null);
       const expense = await expenseService.addExpense(newExpense);
       console.log('Nova despesa adicionada:', expense);
       await loadExpenses();
     } catch (error) {
-      console.error('Erro ao adicionar despesa:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to add expense';
+      console.error('Error adding expense:', error);
+      setError(errorMessage);
     }
   };
 
   const handleUpdateExpense = async (updatedExpense: Expense) => {
     try {
+      setError(null);
       await expenseService.updateExpense(updatedExpense);
       await loadExpenses();
     } catch (error) {
-      console.error('Erro ao atualizar despesa:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update expense';
+      console.error('Error updating expense:', error);
+      setError(errorMessage);
     }
   };
 
   const handleDeleteExpense = async (id: string) => {
     try {
+      setError(null);
       await expenseService.deleteExpense(id);
       await loadExpenses();
     } catch (error) {
-      console.error('Erro ao excluir despesa:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to delete expense';
+      console.error('Error deleting expense:', error);
+      setError(errorMessage);
     }
   };
 
   const handleLogout = async () => {
     try {
       setIsLoading(true);
+      setError(null);
       await authService.logout();
       setExpenses([]);
       setUser(null);
     } catch (error) {
-      console.error('Erro ao fazer logout:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to logout';
+      console.error('Error during logout:', error);
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -128,7 +146,7 @@ function App() {
     return (
       <ThemeProvider theme={theme}>
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-          <Typography>Carregando...</Typography>
+          <CircularProgress />
         </Box>
       </ThemeProvider>
     );
@@ -180,9 +198,15 @@ function App() {
             </AppBar>
 
             <Container>
+              {error && (
+                <Box sx={{ mt: 2 }}>
+                  <Typography color="error">{error}</Typography>
+                </Box>
+              )}
+              
               {isLoading ? (
                 <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
-                  <Typography>Carregando despesas...</Typography>
+                  <CircularProgress />
                 </Box>
               ) : (
                 <Routes>

@@ -1,118 +1,99 @@
-# GaxteIA - Gerenciador de Despesas
+# GaxteIA - Expense Tracking Application
 
-GaxteIA é uma aplicação web moderna para gerenciamento de despesas pessoais, desenvolvida com React, TypeScript e Firebase. Com uma interface intuitiva e recursos poderosos, o GaxteIA ajuda você a manter suas finanças organizadas.
+A modern expense tracking application built with React, TypeScript, and Firebase.
 
-![GaxteIA Logo](/public/logo.png)
+## Features
 
-## 🚀 Funcionalidades
+- User authentication
+- Expense tracking with categories
+- Expense reports with charts
+- PDF report generation
+- Offline support
+- Responsive design
 
-- ✅ **Autenticação Segura**
-  - Login com email e senha
-  - Registro de novos usuários
-  - Proteção de rotas
+## Prerequisites
 
-- 💰 **Gestão de Despesas**
-  - Cadastro de despesas com categoria, descrição, valor e data
-  - Edição e exclusão de despesas
-  - Categorização automática
+- Node.js (v16 or higher)
+- npm or yarn
+- Firebase account
 
-- 📊 **Análise e Relatórios**
-  - Visualização de gastos diários e mensais
-  - Gráficos interativos
-  - Geração de relatórios em PDF
-  - Total de despesas por período
+## Setup
 
-- 🎨 **Interface Moderna**
-  - Design responsivo
-  - Tema personalizado
-  - Componentes Material-UI
-  - Experiência de usuário intuitiva
-
-## 🛠️ Tecnologias Utilizadas
-
-- React
-- TypeScript
-- Firebase (Authentication e Firestore)
-- Material-UI (MUI)
-- React Router
-- Date-fns
-- React-PDF
-- MUI X Charts
-
-## 📦 Instalação
-
-1. Clone o repositório:
+1. Clone the repository:
 ```bash
-git clone [URL_DO_REPOSITÓRIO]
-```
-
-2. Instale as dependências:
-```bash
+git clone <repository-url>
 cd vite-project
+```
+
+2. Install dependencies:
+```bash
 npm install
+# or
+yarn install
 ```
 
-3. Configure as variáveis de ambiente:
-Crie um arquivo `.env` na raiz do projeto e adicione suas configurações do Firebase:
+3. Create a `.env` file in the root directory and add your Firebase configuration:
 ```env
-VITE_FIREBASE_API_KEY=sua_api_key
-VITE_FIREBASE_AUTH_DOMAIN=seu_auth_domain
-VITE_FIREBASE_PROJECT_ID=seu_project_id
-VITE_FIREBASE_STORAGE_BUCKET=seu_storage_bucket
-VITE_FIREBASE_MESSAGING_SENDER_ID=seu_messaging_sender_id
-VITE_FIREBASE_APP_ID=seu_app_id
+VITE_FIREBASE_API_KEY=your_api_key_here
+VITE_FIREBASE_AUTH_DOMAIN=your_auth_domain_here
+VITE_FIREBASE_PROJECT_ID=your_project_id_here
+VITE_FIREBASE_STORAGE_BUCKET=your_storage_bucket_here
+VITE_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id_here
+VITE_FIREBASE_APP_ID=your_app_id_here
+VITE_FIREBASE_MEASUREMENT_ID=your_measurement_id_here
 ```
 
-4. Inicie o servidor de desenvolvimento:
+4. Start the development server:
 ```bash
 npm run dev
+# or
+yarn dev
 ```
 
-## 🌐 Estrutura do Projeto
+## Building for Production
 
-```
-src/
-├── components/     # Componentes React reutilizáveis
-├── pages/         # Páginas da aplicação
-├── services/      # Serviços (Firebase, autenticação)
-├── config/        # Configurações
-├── types/         # Definições de tipos TypeScript
-└── assets/        # Recursos estáticos
+1. Build the application:
+```bash
+npm run build
+# or
+yarn build
 ```
 
-## 📱 Páginas Principais
+2. Preview the production build:
+```bash
+npm run preview
+# or
+yarn preview
+```
 
-- **/**: Página de cadastro de despesas
-- **/relatorio**: Visualização e análise de despesas
-- Autenticação: Login e registro de usuários
+## Deployment
 
-## 🔐 Segurança
+This application is configured for deployment on Vercel. To deploy:
 
-- Autenticação segura com Firebase
-- Proteção de rotas
-- Validação de dados
-- Tratamento de erros
+1. Create a new project on Vercel
+2. Connect your repository
+3. Add the environment variables from your `.env` file to the Vercel project settings
+4. Deploy!
 
-## 🎯 Próximos Passos
+## Tech Stack
 
-- [ ] Implementar categorias personalizadas
-- [ ] Adicionar filtros avançados
-- [ ] Exportação de dados em diferentes formatos
-- [ ] Implementar modo escuro
-- [ ] Adicionar suporte a múltiplas moedas
+- React 18
+- TypeScript
+- Vite
+- Material-UI
+- Firebase
+- React Router
+- React PDF
+- Chart.js
 
-## 📄 Licença
+## Contributing
 
-Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-## 👥 Contribuição
+## License
 
-Contribuições são bem-vindas! Sinta-se à vontade para abrir uma issue ou enviar um pull request.
-
-## 📞 Suporte
-
-Para suporte ou dúvidas, por favor abra uma issue no repositório ou entre em contato através do email [SEU_EMAIL].
-
----
-
-Desenvolvido com ❤️ usando React e TypeScript
+This project is licensed under the MIT License - see the LICENSE file for details
