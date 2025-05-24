@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Link, Navigate, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Link, Navigate } from 'react-router-dom';
 import {
   Container,
   AppBar,
@@ -45,33 +45,45 @@ function App() {
   const [user, setUser] = useState<any>(null);
   const [authChecked, setAuthChecked] = useState(false);
 
-  useEffect(() => {
-    const unsubscribe = authService.onAuthStateChanged((user) => {
-      setUser(user);
-      setAuthChecked(true);
-      if (user) {
-        loadExpenses();
-      }
-    });
-
-    return () => unsubscribe();
-  }, []);
-
-  const loadExpenses = async () => {
+  const loadExpenses = async (currentUser: any = null) => {
     try {
+      setIsLoading(true);
+      const userToUse = currentUser || user;
+      if (!userToUse) return;
+      
       const data = await expenseService.getAllExpenses();
       setExpenses(data);
     } catch (error) {
       console.error('Erro ao carregar despesas:', error);
+      setExpenses([]);
     } finally {
       setIsLoading(false);
     }
   };
 
+  useEffect(() => {
+    const unsubscribe = authService.onAuthStateChanged(async (currentUser) => {
+      console.log('Estado de autenticação alterado:', currentUser?.email);
+      setUser(currentUser);
+      setAuthChecked(true);
+      
+      if (currentUser) {
+        await loadExpenses(currentUser);
+      } else {
+        setExpenses([]);
+        setIsLoading(false);
+      }
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, []);
+
   const handleAddExpense = async (newExpense: Omit<Expense, 'id'>) => {
     try {
       const expense = await expenseService.addExpense(newExpense);
-      setExpenses((prev) => [...prev, expense]);
+      setExpenses(prev => [...prev, expense]);
     } catch (error) {
       console.error('Erro ao adicionar despesa:', error);
     }
@@ -80,8 +92,8 @@ function App() {
   const handleUpdateExpense = async (updatedExpense: Expense) => {
     try {
       await expenseService.updateExpense(updatedExpense);
-      setExpenses((prev) =>
-        prev.map((expense) =>
+      setExpenses(prev =>
+        prev.map(expense =>
           expense.id === updatedExpense.id ? updatedExpense : expense
         )
       );
@@ -93,7 +105,7 @@ function App() {
   const handleDeleteExpense = async (id: string) => {
     try {
       await expenseService.deleteExpense(id);
-      setExpenses((prev) => prev.filter((expense) => expense.id !== id));
+      setExpenses(prev => prev.filter(expense => expense.id !== id));
     } catch (error) {
       console.error('Erro ao excluir despesa:', error);
     }
@@ -103,93 +115,99 @@ function App() {
     try {
       await authService.logout();
       setExpenses([]);
+      setUser(null);
     } catch (error) {
       console.error('Erro ao fazer logout:', error);
     }
   };
 
   if (!authChecked) {
-    return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-      <Typography>Carregando...</Typography>
-    </Box>;
-  }
-
-  if (!user) {
     return (
       <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <BrowserRouter>
-          <AuthPage onAuthSuccess={() => loadExpenses()} />
-        </BrowserRouter>
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+          <Typography>Carregando...</Typography>
+        </Box>
       </ThemeProvider>
     );
   }
 
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <BrowserRouter>
-        <AppBar position="static" sx={{ backgroundColor: theme.palette.primary.main }}>
-          <Toolbar sx={{ gap: 2, justifyContent: 'space-between' }}>
-            <Typography variant="h6" component="div" sx={{ fontWeight: 'bold' }}>
-              GaxteIA
-            </Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Typography variant="body2" sx={{ color: 'white' }}>
-                {user.email}
-              </Typography>
-              <Button 
-                color="inherit" 
-                component={Link} 
-                to={ROUTES.CADASTRO}
-                variant="text"
-              >
-                Cadastrar Despesa
-              </Button>
-              <Button 
-                color="inherit" 
-                component={Link} 
-                to={ROUTES.RELATORIO}
-                variant="text"
-              >
-                Ver Relatório
-              </Button>
-              <Button 
-                color="inherit"
-                onClick={handleLogout}
-                variant="outlined"
-                sx={{ borderColor: 'white' }}
-              >
-                Sair
-              </Button>
-            </Box>
-          </Toolbar>
-        </AppBar>
+    <BrowserRouter>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        {!user ? (
+          <AuthPage onAuthSuccess={() => loadExpenses()} />
+        ) : (
+          <>
+            <AppBar position="static" sx={{ backgroundColor: theme.palette.primary.main }}>
+              <Toolbar sx={{ gap: 2, justifyContent: 'space-between' }}>
+                <Typography variant="h6" component="div" sx={{ fontWeight: 'bold' }}>
+                  GaxteIA
+                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Typography variant="body2" sx={{ color: 'white' }}>
+                    {user.email}
+                  </Typography>
+                  <Button 
+                    color="inherit" 
+                    component={Link} 
+                    to={ROUTES.CADASTRO}
+                    variant="text"
+                  >
+                    Cadastrar Despesa
+                  </Button>
+                  <Button 
+                    color="inherit" 
+                    component={Link} 
+                    to={ROUTES.RELATORIO}
+                    variant="text"
+                  >
+                    Ver Relatório
+                  </Button>
+                  <Button 
+                    color="inherit"
+                    onClick={handleLogout}
+                    variant="outlined"
+                    sx={{ borderColor: 'white' }}
+                  >
+                    Sair
+                  </Button>
+                </Box>
+              </Toolbar>
+            </AppBar>
 
-        <Container sx={{ mt: 3 }}>
-          <Routes>
-            <Route
-              path={ROUTES.CADASTRO}
-              element={<CadastroPage onSubmit={handleAddExpense} />}
-            />
-            <Route
-              path={ROUTES.RELATORIO}
-              element={
-                <RelatorioPage 
-                  expenses={expenses} 
-                  onUpdateExpense={handleUpdateExpense}
-                  onDeleteExpense={handleDeleteExpense}
-                />
-              }
-            />
-            <Route
-              path="*"
-              element={<Navigate to={ROUTES.CADASTRO} replace />}
-            />
-          </Routes>
-        </Container>
-      </BrowserRouter>
-    </ThemeProvider>
+            <Container>
+              {isLoading ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
+                  <Typography>Carregando despesas...</Typography>
+                </Box>
+              ) : (
+                <Routes>
+                  <Route
+                    path={ROUTES.CADASTRO}
+                    element={<CadastroPage onSubmit={handleAddExpense} />}
+                  />
+                  <Route
+                    path={ROUTES.RELATORIO}
+                    element={
+                      <RelatorioPage 
+                        expenses={expenses} 
+                        onUpdateExpense={handleUpdateExpense}
+                        onDeleteExpense={handleDeleteExpense}
+                      />
+                    }
+                  />
+                  <Route
+                    path="*"
+                    element={<Navigate to={ROUTES.CADASTRO} replace />}
+                  />
+                </Routes>
+              )}
+            </Container>
+          </>
+        )}
+      </ThemeProvider>
+    </BrowserRouter>
   );
 }
 
