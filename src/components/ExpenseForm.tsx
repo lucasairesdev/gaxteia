@@ -8,7 +8,7 @@ import {
   MenuItem,
   Paper,
 } from '@mui/material';
-import { Expense } from '../types/Expense';
+import { Expense, NewExpense } from '../types/Expense';
 
 const categories = [
   'Alimentação',
@@ -21,7 +21,7 @@ const categories = [
 ];
 
 interface ExpenseFormProps {
-  onSubmit: (expense: Omit<Expense, 'id'>) => void;
+  onSubmit: (expense: NewExpense) => void;
 }
 
 export const ExpenseForm: React.FC<ExpenseFormProps> = ({ onSubmit }) => {
@@ -29,31 +29,41 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({ onSubmit }) => {
     category: '',
     description: '',
     amount: '',
-    date: '',
+    date: new Date().toISOString().split('T')[0],
   });
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit({
-      category: formData.category,
-      description: formData.description,
-      amount: Number(formData.amount),
-      date: formData.date,
-    });
-    setFormData({
-      category: '',
-      description: '',
-      amount: '',
-      date: '',
-    });
-  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
       [name]: value,
     }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      const expense: NewExpense = {
+        category: formData.category,
+        description: formData.description,
+        amount: parseFloat(formData.amount),
+        date: new Date(formData.date).toISOString(),
+      };
+
+      console.log('Enviando despesa:', expense);
+      await onSubmit(expense);
+
+      // Limpar formulário
+      setFormData({
+        category: '',
+        description: '',
+        amount: '',
+        date: new Date().toISOString().split('T')[0],
+      });
+    } catch (error) {
+      console.error('Erro ao enviar despesa:', error);
+    }
   };
 
   return (
@@ -104,7 +114,7 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({ onSubmit }) => {
               name="amount"
               value={formData.amount}
               onChange={handleChange}
-              inputProps={{ step: "0.01" }}
+              inputProps={{ step: "0.01", min: "0" }}
               sx={{ bgcolor: 'background.paper' }}
             />
 
@@ -125,15 +135,9 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({ onSubmit }) => {
               variant="contained"
               color="primary"
               size="large"
-              sx={{ 
-                mt: 2,
-                bgcolor: 'primary.main',
-                '&:hover': {
-                  bgcolor: 'primary.dark',
-                }
-              }}
+              sx={{ mt: 2 }}
             >
-              Cadastrar
+              Adicionar Despesa
             </Button>
           </Box>
         </Paper>

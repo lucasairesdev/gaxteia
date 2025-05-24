@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { BrowserRouter, Routes, Route, Link, Navigate } from 'react-router-dom';
 import {
   Container,
@@ -14,7 +14,7 @@ import {
 import { CadastroPage } from './pages/CadastroPage';
 import { RelatorioPage } from './pages/RelatorioPage';
 import { AuthPage } from './pages/AuthPage';
-import { Expense } from './types/Expense';
+import { Expense, NewExpense } from './types/Expense';
 import { expenseService } from './services/expenseService';
 import { authService } from './services/authService';
 
@@ -45,13 +45,17 @@ function App() {
   const [user, setUser] = useState<any>(null);
   const [authChecked, setAuthChecked] = useState(false);
 
-  const loadExpenses = async (currentUser: any = null) => {
+  const loadExpenses = useCallback(async () => {
+    if (!user) {
+      setExpenses([]);
+      setIsLoading(false);
+      return;
+    }
+
     try {
       setIsLoading(true);
-      const userToUse = currentUser || user;
-      if (!userToUse) return;
-      
       const data = await expenseService.getAllExpenses();
+      console.log('Despesas carregadas:', data);
       setExpenses(data);
     } catch (error) {
       console.error('Erro ao carregar despesas:', error);
@@ -59,31 +63,31 @@ function App() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user]);
 
+  // Efeito para monitorar mudanças no estado de autenticação
   useEffect(() => {
-    const unsubscribe = authService.onAuthStateChanged(async (currentUser) => {
+    const unsubscribe = authService.onAuthStateChanged((currentUser) => {
       console.log('Estado de autenticação alterado:', currentUser?.email);
       setUser(currentUser);
       setAuthChecked(true);
-      
-      if (currentUser) {
-        await loadExpenses(currentUser);
-      } else {
-        setExpenses([]);
-        setIsLoading(false);
-      }
     });
 
-    return () => {
-      unsubscribe();
-    };
+    return () => unsubscribe();
   }, []);
 
-  const handleAddExpense = async (newExpense: Omit<Expense, 'id'>) => {
+  // Efeito para carregar despesas quando o usuário mudar
+  useEffect(() => {
+    if (authChecked) {
+      loadExpenses();
+    }
+  }, [authChecked, loadExpenses]);
+
+  const handleAddExpense = async (newExpense: NewExpense) => {
     try {
       const expense = await expenseService.addExpense(newExpense);
-      setExpenses(prev => [...prev, expense]);
+      console.log('Nova despesa adicionada:', expense);
+      await loadExpenses();
     } catch (error) {
       console.error('Erro ao adicionar despesa:', error);
     }
@@ -92,11 +96,7 @@ function App() {
   const handleUpdateExpense = async (updatedExpense: Expense) => {
     try {
       await expenseService.updateExpense(updatedExpense);
-      setExpenses(prev =>
-        prev.map(expense =>
-          expense.id === updatedExpense.id ? updatedExpense : expense
-        )
-      );
+      await loadExpenses();
     } catch (error) {
       console.error('Erro ao atualizar despesa:', error);
     }
@@ -105,7 +105,7 @@ function App() {
   const handleDeleteExpense = async (id: string) => {
     try {
       await expenseService.deleteExpense(id);
-      setExpenses(prev => prev.filter(expense => expense.id !== id));
+      await loadExpenses();
     } catch (error) {
       console.error('Erro ao excluir despesa:', error);
     }
@@ -113,11 +113,14 @@ function App() {
 
   const handleLogout = async () => {
     try {
+      setIsLoading(true);
       await authService.logout();
       setExpenses([]);
       setUser(null);
     } catch (error) {
       console.error('Erro ao fazer logout:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -136,7 +139,7 @@ function App() {
       <ThemeProvider theme={theme}>
         <CssBaseline />
         {!user ? (
-          <AuthPage onAuthSuccess={() => loadExpenses()} />
+          <AuthPage onAuthSuccess={loadExpenses} />
         ) : (
           <>
             <AppBar position="static" sx={{ backgroundColor: theme.palette.primary.main }}>

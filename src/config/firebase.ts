@@ -1,12 +1,12 @@
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
-import { getFirestore } from "firebase/firestore";
+import { getFirestore, enableIndexedDbPersistence } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBlGp5JNIOuK5Wo2ydfbMBz9GeVfv3dl3k",
   authDomain: "gaxteia.firebaseapp.com",
   projectId: "gaxteia",
-  storageBucket: "gaxteia.firebasestorage.app",
+  storageBucket: "gaxteia.appspot.com",
   messagingSenderId: "476037744253",
   appId: "1:476037744253:web:baa8941205a1b09eee1314",
   measurementId: "G-3CC917TPZ3"
@@ -14,7 +14,15 @@ const firebaseConfig = {
 
 // Initialize Firebase
 export const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
-const db = getFirestore(app);
+export const analytics = getAnalytics(app);
+export const db = getFirestore(app);
 
-export { db, analytics }; 
+// Habilitar persistência offline
+enableIndexedDbPersistence(db)
+  .catch((err) => {
+    if (err.code === 'failed-precondition') {
+      console.warn('Múltiplas abas abertas, persistência offline não pode ser habilitada');
+    } else if (err.code === 'unimplemented') {
+      console.warn('O navegador não suporta persistência offline');
+    }
+  }); 

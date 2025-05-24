@@ -5,10 +5,17 @@ import {
   signOut,
   onAuthStateChanged,
   User,
+  setPersistence,
+  browserLocalPersistence
 } from 'firebase/auth';
 import { app } from '../config/firebase';
 
 const auth = getAuth(app);
+
+// Configurar persistência local
+setPersistence(auth, browserLocalPersistence).catch((error) => {
+  console.error('Erro ao configurar persistência:', error);
+});
 
 export const authService = {
   // Registrar novo usuário
@@ -52,6 +59,7 @@ export const authService = {
 
   // Tratamento de erros de autenticação
   handleAuthError(error: any) {
+    console.error('Erro de autenticação:', error);
     switch (error.code) {
       case 'auth/email-already-in-use':
         return new Error('Este email já está sendo usado');

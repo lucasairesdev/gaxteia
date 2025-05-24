@@ -1,10 +1,10 @@
 import React from 'react';
 import { Box, Typography } from '@mui/material';
 import { ExpenseForm } from '../components/ExpenseForm';
-import { Expense } from '../types/Expense';
+import { NewExpense } from '../types/Expense';
 
 interface CadastroPageProps {
-  onSubmit: (expense: Omit<Expense, 'id'>) => void;
+  onSubmit: (expense: NewExpense) => void;
 }
 
 export const CadastroPage: React.FC<CadastroPageProps> = ({ onSubmit }) => {
