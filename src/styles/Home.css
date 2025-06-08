@@ -1,0 +1,98 @@
+:root {
+  --primary: #0a2342;
+  --secondary: #111111;
+  --accent: #4a90e2;
+  --background: #f4f6fa;
+  --white: #fff;
+  --input-bg: #e9ecf3;
+}
+
+.home-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+  background: var(--background);
+  min-height: 100vh;
+}
+
+.expense-form {
+  background-color: var(--white);
+  padding: 2rem;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(10, 35, 66, 0.08);
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--primary);
+  border-radius: 6px;
+  font-size: 1rem;
+  background: var(--input-bg);
+  color: var(--secondary);
+  transition: border-color 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.15);
+}
+
+.submit-button {
+  background-color: var(--primary);
+  color: var(--white);
+  padding: 0.9rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  transition: background 0.2s;
+  margin-top: 1rem;
+  box-shadow: 0 2px 8px rgba(10, 35, 66, 0.08);
+}
+
+.submit-button:hover {
+  background-color: var(--accent);
+}
+
+h1 {
+  color: var(--primary);
+  margin-bottom: 2rem;
+  text-align: center;
+  font-size: 2.2rem;
+  font-weight: 700;
+}
+
+@media (max-width: 600px), (max-width: 430px) and (min-device-width: 390px) and (max-device-width: 430px) {
+  .home-container {
+    padding: 0.5rem;
+    min-height: 100vh;
+  }
+  .expense-form {
+    padding: 1rem;
+    border-radius: 10px;
+  }
+  h1 {
+    font-size: 1.3rem;
+  }
+  .submit-button {
+    font-size: 1rem;
+    padding: 0.7rem 1rem;
+  }
+} 
