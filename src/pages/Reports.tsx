@@ -2,21 +2,32 @@ import { useState, useEffect } from 'react';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import '../styles/Reports.css';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { collection, getDocs, query, where, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 
 interface Expense {
+  id?: string;
   category: string;
   description: string;
   value: number;
   card: string;
   date: string;
+  spender: string;
 }
 
 export function Reports() {
+  const getCurrentMonth = () => {
+    const date = new Date();
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    return `${year}-${month}`;
+  };
+
   const [expenses, setExpenses] = useState<Expense[]>([]);
-  const [currentMonth, setCurrentMonth] = useState(new Date().toISOString().slice(0, 7));
+  const [currentMonth, setCurrentMonth] = useState(getCurrentMonth());
   const [loading, setLoading] = useState(false);
+  const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   useEffect(() => {
     const fetchExpenses = async () => {
@@ -29,12 +40,57 @@ export function Reports() {
         where('date', '<=', end)
       );
       const querySnapshot = await getDocs(q);
-      const data = querySnapshot.docs.map(doc => doc.data() as Expense);
+      const data = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      } as Expense));
       setExpenses(data);
       setLoading(false);
     };
     fetchExpenses();
   }, [currentMonth]);
+
+  const handleEdit = (expense: Expense) => {
+    setEditingExpense(expense);
+    setShowEditModal(true);
+  };
+
+  const handleDelete = async (expenseId: string) => {
+    if (window.confirm('Tem certeza que deseja excluir este gasto?')) {
+      try {
+        await deleteDoc(doc(db, 'InformacoesDeGastos', expenseId));
+        setExpenses(expenses.filter(expense => expense.id !== expenseId));
+        alert('Gasto excluído com sucesso!');
+      } catch (error) {
+        alert('Erro ao excluir gasto.');
+      }
+    }
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingExpense?.id) return;
+
+    try {
+      const expenseRef = doc(db, 'InformacoesDeGastos', editingExpense.id);
+      await updateDoc(expenseRef, {
+        category: editingExpense.category,
+        description: editingExpense.description,
+        value: editingExpense.value,
+        card: editingExpense.card,
+        date: editingExpense.date,
+        spender: editingExpense.spender
+      });
+
+      setExpenses(expenses.map(expense => 
+        expense.id === editingExpense.id ? editingExpense : expense
+      ));
+      setShowEditModal(false);
+      setEditingExpense(null);
+      alert('Gasto atualizado com sucesso!');
+    } catch (error) {
+      alert('Erro ao atualizar gasto.');
+    }
+  };
 
   const getMonthlyExpenses = () => expenses;
   const getTotalExpenses = () => getMonthlyExpenses().reduce((total, expense) => total + expense.value, 0);
@@ -61,10 +117,11 @@ export function Reports() {
       expense.category,
       expense.description,
       expense.card,
+      expense.spender,
       `R$ ${expense.value.toFixed(2)}`
     ]);
     (doc as any).autoTable({
-      head: [['Data', 'Categoria', 'Descrição', 'Cartão', 'Valor']],
+      head: [['Data', 'Categoria', 'Descrição', 'Cartão', 'Quem Gastou', 'Valor']],
       body: tableData,
       startY: 40,
     });
@@ -114,17 +171,34 @@ export function Reports() {
               <th>Categoria</th>
               <th>Descrição</th>
               <th>Cartão</th>
+              <th>Quem Gastou</th>
               <th>Valor</th>
+              <th>Ações</th>
             </tr>
           </thead>
           <tbody>
-            {getMonthlyExpenses().map((expense, index) => (
-              <tr key={index}>
+            {getMonthlyExpenses().map((expense) => (
+              <tr key={expense.id}>
                 <td>{expense.date}</td>
                 <td>{expense.category}</td>
                 <td>{expense.description}</td>
                 <td>{expense.card}</td>
+                <td>{expense.spender}</td>
                 <td>R$ {expense.value.toFixed(2)}</td>
+                <td>
+                  <button 
+                    onClick={() => handleEdit(expense)}
+                    className="edit-button"
+                  >
+                    Editar
+                  </button>
+                  <button 
+                    onClick={() => expense.id && handleDelete(expense.id)}
+                    className="delete-button"
+                  >
+                    Excluir
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -134,6 +208,100 @@ export function Reports() {
       <button onClick={generatePDF} className="download-button">
         Baixar Relatório em PDF
       </button>
+
+      {showEditModal && editingExpense && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h2>Editar Gasto</h2>
+            <div className="form-group">
+              <label htmlFor="edit-category">Categoria:</label>
+              <select
+                id="edit-category"
+                value={editingExpense.category}
+                onChange={(e) => setEditingExpense({...editingExpense, category: e.target.value})}
+                required
+              >
+                <option value="">Selecione uma categoria</option>
+                <option value="alimentacao">Alimentação</option>
+                <option value="transporte">Transporte</option>
+                <option value="moradia">Moradia</option>
+                <option value="lazer">Lazer</option>
+                <option value="outros">Outros</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label htmlFor="edit-description">Descrição:</label>
+              <input
+                type="text"
+                id="edit-description"
+                value={editingExpense.description}
+                onChange={(e) => setEditingExpense({...editingExpense, description: e.target.value})}
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="edit-value">Valor (R$):</label>
+              <input
+                type="number"
+                id="edit-value"
+                value={editingExpense.value}
+                onChange={(e) => setEditingExpense({...editingExpense, value: Number(e.target.value)})}
+                step="0.01"
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="edit-card">Cartão Utilizado:</label>
+              <select
+                id="edit-card"
+                value={editingExpense.card}
+                onChange={(e) => setEditingExpense({...editingExpense, card: e.target.value})}
+                required
+              >
+                <option value="">Selecione o cartão</option>
+                <option value="Caju Lucas">Caju Lucas</option>
+                <option value="Caju Valesca">Caju Valesca</option>
+                <option value="Inter débito">Inter débito</option>
+                <option value="Inter crédito">Inter crédito</option>
+                <option value="Itaú débito">Itaú débito</option>
+                <option value="Nubank crédito">Nubank crédito</option>
+                <option value="Pix">Pix</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label htmlFor="edit-spender">Quem está gastando?</label>
+              <select
+                id="edit-spender"
+                value={editingExpense.spender}
+                onChange={(e) => setEditingExpense({...editingExpense, spender: e.target.value})}
+                required
+              >
+                <option value="">Selecione quem está gastando</option>
+                <option value="Lucas">Lucas</option>
+                <option value="Valesca">Valesca</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label htmlFor="edit-date">Data do Gasto:</label>
+              <input
+                type="date"
+                id="edit-date"
+                value={editingExpense.date}
+                onChange={(e) => setEditingExpense({...editingExpense, date: e.target.value})}
+                required
+              />
+            </div>
+            <div className="modal-buttons">
+              <button onClick={handleSaveEdit} className="save-button">
+                Salvar
+              </button>
+              <button onClick={() => setShowEditModal(false)} className="cancel-button">
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 } 

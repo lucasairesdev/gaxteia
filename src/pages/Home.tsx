@@ -9,15 +9,25 @@ interface Expense {
   value: number;
   card: string;
   date: string;
+  spender: string;
 }
 
 export function Home() {
+  const getTodayDate = () => {
+    const date = new Date();
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   const [expense, setExpense] = useState<Expense>({
     category: '',
     description: '',
     value: 0,
     card: '',
-    date: new Date().toISOString().split('T')[0]
+    date: getTodayDate(),
+    spender: ''
   });
   const [loading, setLoading] = useState(false);
 
@@ -31,7 +41,8 @@ export function Home() {
         description: '',
         value: 0,
         card: '',
-        date: new Date().toISOString().split('T')[0]
+        date: getTodayDate(),
+        spender: ''
       });
       alert('Gasto registrado com sucesso!');
     } catch (error) {
@@ -83,13 +94,34 @@ export function Home() {
         </div>
         <div className="form-group">
           <label htmlFor="card">Cartão Utilizado:</label>
-          <input
-            type="text"
+          <select
             id="card"
             value={expense.card}
             onChange={(e) => setExpense({...expense, card: e.target.value})}
             required
-          />
+          >
+            <option value="">Selecione o cartão</option>
+            <option value="Caju Lucas">Caju Lucas</option>
+            <option value="Caju Valesca">Caju Valesca</option>
+            <option value="Inter débito">Inter débito</option>
+            <option value="Inter crédito">Inter crédito</option>
+            <option value="Itaú débito">Itaú débito</option>
+            <option value="Nubank crédito">Nubank crédito</option>
+            <option value="Pix">Pix</option>
+          </select>
+        </div>
+        <div className="form-group">
+          <label htmlFor="spender">Quem está gastando?</label>
+          <select
+            id="spender"
+            value={expense.spender}
+            onChange={(e) => setExpense({...expense, spender: e.target.value})}
+            required
+          >
+            <option value="">Selecione quem está gastando</option>
+            <option value="Lucas">Lucas</option>
+            <option value="Valesca">Valesca</option>
+          </select>
         </div>
         <div className="form-group">
           <label htmlFor="date">Data do Gasto:</label>
