@@ -4,11 +4,12 @@
   align-items: center;
   min-height: 100vh;
   background-color: var(--background);
+  padding: 1rem;
 }
 
 .login-box {
   background-color: var(--white);
-  padding: 2rem;
+  padding: 2.5rem;
   border-radius: 16px;
   box-shadow: 0 4px 16px rgba(10, 35, 66, 0.08);
   width: 100%;
@@ -20,13 +21,15 @@
   text-align: center;
   margin-bottom: 0.5rem;
   font-size: 2.5rem;
+  font-weight: 700;
 }
 
 .login-box h2 {
   color: var(--secondary);
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 2.5rem;
   font-size: 1.5rem;
+  font-weight: 500;
 }
 
 .login-box .form-group {
@@ -38,40 +41,109 @@
   margin-bottom: 0.5rem;
   font-weight: 600;
   color: var(--primary);
+  font-size: 0.95rem;
 }
 
-.login-box input {
+.login-box input[type="email"],
+.login-box input[type="password"] {
   width: 100%;
-  padding: 0.75rem;
-  border: 1px solid var(--primary);
-  border-radius: 6px;
+  padding: 0.85rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
   font-size: 1rem;
   background: var(--input-bg);
   color: var(--secondary);
-  transition: border-color 0.2s;
+  transition: all 0.2s ease;
 }
 
-.login-box input:focus {
+.login-box input[type="email"]:focus,
+.login-box input[type="password"]:focus {
   outline: none;
   border-color: var(--accent);
-  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.15);
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.15);
+  background-color: white;
+}
+
+.checkbox-group {
+  margin: 1.5rem 0 2rem 0;
+}
+
+.checkbox-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  user-select: none;
+  font-weight: 400;
+  margin: 0;
+  padding: 0.25rem 0;
+}
+
+.checkbox-label input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--primary);
+  border-radius: 4px;
+  margin: 0;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  background-color: white;
+}
+
+.checkbox-label input[type="checkbox"]:checked {
+  background-color: var(--accent);
+  border-color: var(--accent);
+}
+
+.checkbox-label input[type="checkbox"]:checked::after {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 2px;
+  width: 4px;
+  height: 8px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.checkbox-label input[type="checkbox"]:hover {
+  border-color: var(--accent);
+}
+
+.checkbox-label span {
+  color: var(--secondary);
+  font-size: 0.9rem;
+  line-height: 1.4;
+  font-weight: 500;
 }
 
 .login-box button {
   width: 100%;
-  padding: 0.9rem;
+  padding: 1rem;
   background-color: var(--primary);
   color: var(--white);
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 1.1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.2s ease;
+  margin-top: 0.5rem;
 }
 
 .login-box button:hover:not(:disabled) {
   background-color: var(--accent);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.2);
+}
+
+.login-box button:active:not(:disabled) {
+  transform: translateY(0);
 }
 
 .login-box button:disabled {
@@ -82,8 +154,42 @@
 .error-message {
   background-color: #ffebee;
   color: #c62828;
-  padding: 0.75rem;
-  border-radius: 6px;
-  margin-bottom: 1rem;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
   text-align: center;
+  font-size: 0.95rem;
+  border: 1px solid #ffcdd2;
+}
+
+@media (max-width: 480px) {
+  .login-box {
+    padding: 2rem 1.5rem;
+  }
+
+  .login-box h1 {
+    font-size: 2rem;
+  }
+
+  .login-box h2 {
+    font-size: 1.3rem;
+    margin-bottom: 2rem;
+  }
+
+  .login-box input[type="email"],
+  .login-box input[type="password"] {
+    padding: 0.75rem;
+  }
+
+  .login-box button {
+    padding: 0.9rem;
+  }
+
+  .checkbox-label {
+    gap: 0.5rem;
+  }
+
+  .checkbox-label span {
+    font-size: 0.85rem;
+  }
 } 

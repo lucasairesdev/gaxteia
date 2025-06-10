@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
+import { getAuth, signInWithEmailAndPassword, setPersistence, browserLocalPersistence, browserSessionPersistence } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import '../styles/Login.css';
 
@@ -8,6 +8,7 @@ export function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [keepLoggedIn, setKeepLoggedIn] = useState(false);
   const navigate = useNavigate();
   const auth = getAuth();
 
@@ -17,6 +18,10 @@ export function Login() {
     setError('');
 
     try {
+      // Configura a persistência da autenticação
+      await setPersistence(auth, keepLoggedIn ? browserLocalPersistence : browserSessionPersistence);
+      
+      // Faz o login
       await signInWithEmailAndPassword(auth, email, password);
       navigate('/');
     } catch (error: any) {
@@ -53,6 +58,16 @@ export function Login() {
               onChange={(e) => setPassword(e.target.value)}
               required
             />
+          </div>
+          <div className="form-group checkbox-group">
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                checked={keepLoggedIn}
+                onChange={(e) => setKeepLoggedIn(e.target.checked)}
+              />
+              <span>Mantenha-me conectado</span>
+            </label>
           </div>
           <button type="submit" disabled={loading}>
             {loading ? 'Entrando...' : 'Entrar'}
