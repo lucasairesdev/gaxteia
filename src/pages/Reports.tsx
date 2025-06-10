@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import '../styles/Reports.css';
 import { collection, getDocs, query, where, doc, updateDoc, deleteDoc, addDoc, Timestamp } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
@@ -179,36 +179,75 @@ export function Reports() {
   };
 
   const generatePDF = () => {
-    const doc = new jsPDF();
-    const monthlyExpenses = getMonthlyExpenses();
-    const total = getTotalExpenses();
-    const categories = getExpensesByCategory();
-    doc.setFontSize(20);
-    doc.text('Relatório de Gastos Mensais', 14, 20);
-    doc.setFontSize(12);
-    doc.text(`Mês: ${currentMonth}`, 14, 30);
-    const tableData = monthlyExpenses.map(expense => [
-      expense.date,
-      expense.category,
-      expense.description,
-      expense.card,
-      expense.spender,
-      `R$ ${expense.value.toFixed(2)}`
-    ]);
-    (doc as any).autoTable({
-      head: [['Data', 'Categoria', 'Descrição', 'Cartão', 'Quem Gastou', 'Valor']],
-      body: tableData,
-      startY: 40,
-    });
-    const finalY = (doc as any).lastAutoTable.finalY || 40;
-    doc.text(`Total: R$ ${total.toFixed(2)}`, 14, finalY + 10);
-    doc.text('Gastos por Categoria:', 14, finalY + 20);
-    let yOffset = finalY + 30;
-    Object.entries(categories).forEach(([category, value]) => {
-      doc.text(`${category}: R$ ${value.toFixed(2)}`, 20, yOffset);
-      yOffset += 10;
-    });
-    doc.save(`relatorio-gastos-${currentMonth}.pdf`);
+    try {
+      const doc = new jsPDF();
+      const monthlyExpenses = getMonthlyExpenses();
+      const total = getTotalExpenses();
+      const categories = getExpensesByCategory();
+
+      // Configuração do cabeçalho
+      doc.setFontSize(20);
+      doc.text('Relatório de Gastos Mensais', 14, 20);
+      doc.setFontSize(12);
+      doc.text(`Mês: ${currentMonth}`, 14, 30);
+
+      // Preparação dos dados da tabela
+      const tableData = monthlyExpenses.map(expense => [
+        expense.date,
+        expense.category,
+        expense.description,
+        expense.card,
+        expense.spender,
+        `R$ ${expense.value.toFixed(2)}`
+      ]);
+
+      // Configuração da tabela
+      autoTable(doc, {
+        head: [['Data', 'Categoria', 'Descrição', 'Cartão', 'Quem Gastou', 'Valor']],
+        body: tableData,
+        startY: 40,
+        theme: 'grid',
+        styles: {
+          fontSize: 8,
+          cellPadding: 2,
+        },
+        headStyles: {
+          fillColor: [10, 35, 66],
+          textColor: 255,
+          fontSize: 9,
+          fontStyle: 'bold',
+        },
+        columnStyles: {
+          0: { cellWidth: 25 },
+          1: { cellWidth: 25 },
+          2: { cellWidth: 40 },
+          3: { cellWidth: 30 },
+          4: { cellWidth: 25 },
+          5: { cellWidth: 25 },
+        },
+      });
+
+      // Adicionando o total e gastos por categoria
+      const finalY = (doc as any).lastAutoTable.finalY || 40;
+      doc.setFontSize(12);
+      doc.text(`Total: R$ ${total.toFixed(2)}`, 14, finalY + 10);
+      doc.text('Gastos por Categoria:', 14, finalY + 20);
+
+      let yOffset = finalY + 30;
+      Object.entries(categories).forEach(([category, value]) => {
+        doc.text(`${category}: R$ ${value.toFixed(2)}`, 20, yOffset);
+        yOffset += 10;
+      });
+
+      // Salvando o PDF
+      doc.save(`relatorio-gastos-${currentMonth}.pdf`);
+    } catch (error) {
+      console.error('Erro ao gerar PDF:', error);
+      const errorMessage = error instanceof Error 
+        ? `Código do erro: ${error.name}\nDescrição: ${error.message}`
+        : 'Erro desconhecido ao gerar o PDF';
+      alert(`Ocorreu um erro ao gerar o PDF. Por favor, tente novamente.\n\n${errorMessage}`);
+    }
   };
 
   return (
