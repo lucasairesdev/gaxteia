@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import '../styles/Reports.css';
-import { collection, getDocs, query, where, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { collection, getDocs, query, where, doc, updateDoc, deleteDoc, addDoc, Timestamp } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 
 interface Expense {
@@ -13,6 +13,14 @@ interface Expense {
   card: string;
   date: string;
   spender: string;
+}
+
+interface MonthlyReport {
+  month: string;
+  totalExpenses: number;
+  expensesByCategory: Record<string, number>;
+  expenses: Expense[];
+  createdAt: Timestamp;
 }
 
 export function Reports() {
@@ -28,6 +36,72 @@ export function Reports() {
   const [loading, setLoading] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
+
+  const saveMonthlyReport = async (month: string) => {
+    try {
+      const monthlyExpenses = expenses;
+      const totalExpenses = getTotalExpenses();
+      const expensesByCategory = getExpensesByCategory();
+
+      const report: MonthlyReport = {
+        month,
+        totalExpenses,
+        expensesByCategory,
+        expenses: monthlyExpenses,
+        createdAt: Timestamp.now()
+      };
+
+      await addDoc(collection(db, 'MonthlyReports'), report);
+      console.log('Relatório mensal salvo com sucesso!');
+    } catch (error) {
+      console.error('Erro ao salvar relatório mensal:', error);
+    }
+  };
+
+  const checkAndSaveMonthlyReport = async () => {
+    const today = new Date();
+    const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    
+    // Se for o último dia do mês e ainda não salvamos o relatório
+    if (today.getDate() === lastDayOfMonth.getDate()) {
+      const previousMonth = new Date(today.getFullYear(), today.getMonth(), 0);
+      const previousMonthStr = `${previousMonth.getFullYear()}-${String(previousMonth.getMonth() + 1).padStart(2, '0')}`;
+      
+      // Verificar se já existe um relatório para o mês anterior
+      const q = query(
+        collection(db, 'MonthlyReports'),
+        where('month', '==', previousMonthStr)
+      );
+      const querySnapshot = await getDocs(q);
+      
+      if (querySnapshot.empty) {
+        await saveMonthlyReport(previousMonthStr);
+        // Limpar os gastos do mês anterior
+        await clearPreviousMonthExpenses(previousMonthStr);
+      }
+    }
+  };
+
+  const clearPreviousMonthExpenses = async (month: string) => {
+    try {
+      const start = `${month}-01`;
+      const end = `${month}-31`;
+      const q = query(
+        collection(db, 'InformacoesDeGastos'),
+        where('date', '>=', start),
+        where('date', '<=', end)
+      );
+      const querySnapshot = await getDocs(q);
+      
+      // Excluir cada documento do mês anterior
+      const deletePromises = querySnapshot.docs.map(doc => deleteDoc(doc.ref));
+      await Promise.all(deletePromises);
+      
+      console.log('Gastos do mês anterior foram limpos com sucesso!');
+    } catch (error) {
+      console.error('Erro ao limpar gastos do mês anterior:', error);
+    }
+  };
 
   useEffect(() => {
     const fetchExpenses = async () => {
@@ -48,6 +122,7 @@ export function Reports() {
       setLoading(false);
     };
     fetchExpenses();
+    checkAndSaveMonthlyReport();
   }, [currentMonth]);
 
   const handleEdit = (expense: Expense) => {
