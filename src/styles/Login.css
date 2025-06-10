@@ -3,13 +3,14 @@
   justify-content: center;
   align-items: center;
   min-height: 100vh;
+  min-height: 100dvh; /* Para dispositivos móveis com barra de navegação */
   background-color: var(--background);
   padding: 1rem;
 }
 
 .login-box {
   background-color: var(--white);
-  padding: 2.5rem;
+  padding: 2rem 1.5rem;
   border-radius: 16px;
   box-shadow: 0 4px 16px rgba(10, 35, 66, 0.08);
   width: 100%;
@@ -20,20 +21,20 @@
   color: var(--primary);
   text-align: center;
   margin-bottom: 0.5rem;
-  font-size: 2.5rem;
+  font-size: 2rem;
   font-weight: 700;
 }
 
 .login-box h2 {
   color: var(--secondary);
   text-align: center;
-  margin-bottom: 2.5rem;
-  font-size: 1.5rem;
+  margin-bottom: 2rem;
+  font-size: 1.3rem;
   font-weight: 500;
 }
 
 .login-box .form-group {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
 }
 
 .login-box label {
@@ -41,7 +42,7 @@
   margin-bottom: 0.5rem;
   font-weight: 600;
   color: var(--primary);
-  font-size: 0.95rem;
+  font-size: 0.9rem;
 }
 
 .login-box input[type="email"],
@@ -54,6 +55,8 @@
   background: var(--input-bg);
   color: var(--secondary);
   transition: all 0.2s ease;
+  -webkit-appearance: none; /* Remove estilo padrão do iOS */
+  appearance: none;
 }
 
 .login-box input[type="email"]:focus,
@@ -65,7 +68,7 @@
 }
 
 .checkbox-group {
-  margin: 1.5rem 0 2rem 0;
+  margin: 1.25rem 0 1.75rem 0;
 }
 
 .checkbox-label {
@@ -77,13 +80,14 @@
   font-weight: 400;
   margin: 0;
   padding: 0.25rem 0;
+  touch-action: manipulation; /* Melhora interação touch */
 }
 
 .checkbox-label input[type="checkbox"] {
   appearance: none;
   -webkit-appearance: none;
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   border: 2px solid var(--primary);
   border-radius: 4px;
   margin: 0;
@@ -92,6 +96,7 @@
   transition: all 0.2s ease;
   flex-shrink: 0;
   background-color: white;
+  touch-action: manipulation;
 }
 
 .checkbox-label input[type="checkbox"]:checked {
@@ -102,10 +107,10 @@
 .checkbox-label input[type="checkbox"]:checked::after {
   content: '';
   position: absolute;
-  left: 5px;
+  left: 6px;
   top: 2px;
   width: 4px;
-  height: 8px;
+  height: 9px;
   border: solid white;
   border-width: 0 2px 2px 0;
   transform: rotate(45deg);
@@ -124,16 +129,18 @@
 
 .login-box button {
   width: 100%;
-  padding: 1rem;
+  padding: 0.9rem;
   background-color: var(--primary);
   color: var(--white);
   border: none;
   border-radius: 8px;
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
   margin-top: 0.5rem;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent; /* Remove highlight no tap em iOS */
 }
 
 .login-box button:hover:not(:disabled) {
@@ -154,35 +161,39 @@
 .error-message {
   background-color: #ffebee;
   color: #c62828;
-  padding: 1rem;
+  padding: 0.85rem;
   border-radius: 8px;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
   text-align: center;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   border: 1px solid #ffcdd2;
 }
 
+/* Media queries para diferentes tamanhos de tela */
 @media (max-width: 480px) {
   .login-box {
-    padding: 2rem 1.5rem;
+    padding: 1.5rem 1.25rem;
+    margin: 0.5rem;
   }
 
   .login-box h1 {
-    font-size: 2rem;
+    font-size: 1.75rem;
   }
 
   .login-box h2 {
-    font-size: 1.3rem;
-    margin-bottom: 2rem;
+    font-size: 1.2rem;
+    margin-bottom: 1.75rem;
   }
 
   .login-box input[type="email"],
   .login-box input[type="password"] {
     padding: 0.75rem;
+    font-size: 16px; /* Evita zoom automático no iOS */
   }
 
   .login-box button {
-    padding: 0.9rem;
+    padding: 0.85rem;
+    font-size: 0.95rem;
   }
 
   .checkbox-label {
@@ -191,5 +202,61 @@
 
   .checkbox-label span {
     font-size: 0.85rem;
+  }
+
+  .checkbox-label input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+/* Ajustes para telas muito pequenas */
+@media (max-width: 360px) {
+  .login-box {
+    padding: 1.25rem 1rem;
+  }
+
+  .login-box h1 {
+    font-size: 1.5rem;
+  }
+
+  .login-box h2 {
+    font-size: 1.1rem;
+  }
+
+  .login-box input[type="email"],
+  .login-box input[type="password"] {
+    padding: 0.7rem;
+  }
+
+  .login-box button {
+    padding: 0.8rem;
+  }
+}
+
+/* Ajustes para telas altas e estreitas */
+@media (max-height: 600px) {
+  .login-container {
+    padding: 0.5rem;
+  }
+
+  .login-box {
+    padding: 1.25rem;
+  }
+
+  .login-box h1 {
+    margin-bottom: 0.25rem;
+  }
+
+  .login-box h2 {
+    margin-bottom: 1.25rem;
+  }
+
+  .login-box .form-group {
+    margin-bottom: 1rem;
+  }
+
+  .checkbox-group {
+    margin: 1rem 0 1.5rem 0;
   }
 } 
